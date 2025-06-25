@@ -8,40 +8,41 @@ import java.util.concurrent.*;
 public class ChatServer
 {
 
-    private static final int PORT = 12345; // Port na którym będzie działał server
-    // Zad. 1
-    //private static Set<PrintWriter> clientWriters = new HashSet<>(); // Przechowuje output streamy wszystkich klientów
-    //Zad. 3a
+    // Numer portu, na którym działa serwer
+    private static final int PORT = 12345;
+
+    // Mapa trzymająca login -> output stream klienta
     private static Map<String, PrintWriter> clientWriters = new ConcurrentHashMap<>();
 
     public static void main(String[] args)
     {
         System.out.println("Chat Server is running on port " + PORT);
-        ExecutorService pool = Executors.newFixedThreadPool(50); // Pula wątków, do obsługiwania klientów
+
+        // Tworzymy pulę wątków (np. do 50 klientów jednocześnie)
+        ExecutorService pool = Executors.newFixedThreadPool(50);
 
         try (ServerSocket listener = new ServerSocket(PORT))
         {
+            // Serwer działa w pętli — czeka na połączenia
             while (true)
             {
-                pool.execute(new ClientHandler(listener.accept())); // Akceptujemy połączenie klientów
+                // Dla każdego nowego klienta uruchamiamy nowy wątek
+                pool.execute(new ClientHandler(listener.accept()));
             }
         }
         catch (IOException e)
         {
             System.err.println("Server error: " + e.getMessage());
         }
-        finally
-        {
-            pool.shutdown(); // Wyłączamy pulę wątków
-        }
     }
 
+    // Obsługa pojedynczego klienta
     private static class ClientHandler implements Runnable
     {
         private Socket socket;
-        private BufferedReader in;
-        private PrintWriter out;
-        private String userName;
+        private BufferedReader in;   // Odczyt z klienta
+        private PrintWriter out;     // Wysyłanie do klienta
+        private String userName;     // Nazwa klienta
 
         public ClientHandler(Socket socket)
         {
@@ -52,87 +53,106 @@ public class ChatServer
         public void run()
         {
             try
-
             {
+                // Inicjalizacja strumieni
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
 
-                // Pytamu klienta o imię
+                // Odczyt nazwy użytkownika
                 userName = in.readLine();
-                while (userName == null || userName.trim().isEmpty())
+
+                // Walidacja loginu
+                if (userName == null || userName.trim().isEmpty())
                 {
-                    out.println("Imie nie może być puste, podaj imie"); // Pytamy ponownie jeśli jest puste
-                    userName = in.readLine();
+                    out.println("NAME_INVALID");
+                    return;
                 }
-                System.out.println(userName + " Dołączył do czatu.");
-                broadcastMessage("CZAT: " + userName + " Dołączył do czatu.");
 
-                // Zad. 1
-//                synchronized (clientWriters)
-//                {
-//                    clientWriters.add(out);
-//                }
-
+                // Sprawdzenie unikalności loginu
                 synchronized (clientWriters)
                 {
-                    if(clientWriters.containsKey(userName))
+                    if (clientWriters.containsKey(userName))
                     {
-                        out.println("NAME_TAKEN " + userName + "Ten login jest zajęty, wybierz coś innego");
+                        out.println("NAME_TAKEN");
                         return;
                     }
+                    // Dodanie klienta do listy aktywnych
                     clientWriters.put(userName, out);
                 }
 
-                // Odczytujemy wiadmość klienta i ją nadajemy
+                // Informacja o nowym użytkowniku
+                System.out.println(userName + " joined.");
+                broadcast("LOGIN:" + userName);
+
+                // Wysłanie listy online użytkowników do nowego klienta
+                sendOnlineList();
+
+                // Główna pętla — odbieranie wiadomości od klienta
                 String message;
+
                 while ((message = in.readLine()) != null)
                 {
-                    System.out.println(userName + ": " + message);
-                    broadcastMessage("MSG: " + userName + ": " + message);
+                    // Rozsyłanie wiadomości do innych
+                    broadcast("MSG:" + userName + ": " + message);
                 }
+
             }
             catch (IOException e)
             {
-                System.err.println("Error handling client " + userName + ": " + e.getMessage());
+                System.err.println("Error for " + userName + ": " + e.getMessage());
             }
             finally
             {
+                // Usuwanie klienta z listy przy rozłączeniu
                 if (userName != null)
                 {
-                    synchronized (clientWriters){
+                    synchronized (clientWriters)
+                    {
                         clientWriters.remove(userName);
                     }
-                    System.out.println(userName + " wyszedł z czatu.");
-                    broadcastMessage("CZAT: " + userName + " wyszedł z czatu.");
+                    broadcast("LOGOUT:" + userName);
+                    System.out.println(userName + " left.");
                 }
-                if (out != null)
-                {
-                    synchronized (clientWriters)
 
-                    {
-                        clientWriters.remove(out); // Usuwamy writer klienta i się rozłączamy
-                    }
-                }
+                // Zamknięcie połączenia
                 try
                 {
-                    socket.close(); // Zamykamy socket
+                    socket.close();
                 }
                 catch (IOException e)
                 {
-                    System.err.println("Error closing socket for " + userName + ": " + e.getMessage());
+                    System.err.println("Closing socket error: " + e.getMessage());
                 }
             }
         }
-    }
 
-    // Wysyłamy wiadomość do wszystkich klientów
-    private static void broadcastMessage(String message)
-    {
-        synchronized (clientWriters)
+        // Wysyłanie listy zalogowanych użytkowników nowemu klientowi
+        private void sendOnlineList()
         {
-            for (PrintWriter writer: clientWriters.values())
+            StringBuilder usersList = new StringBuilder();
+
+            for (String user : clientWriters.keySet())
             {
-                writer.println(message);
+                usersList.append(user).append(",");
+            }
+
+            // Usunięcie ostatniego przecinka
+            if (usersList.length() > 0)
+                usersList.setLength(usersList.length() - 1);
+
+            // Wysłanie listy do klienta
+            out.println("ONLINE:" + usersList.toString());
+        }
+
+        // Wysłanie wiadomości do wszystkich klientów
+        private void broadcast(String message)
+        {
+            synchronized (clientWriters)
+            {
+                for (PrintWriter writer : clientWriters.values())
+                {
+                    writer.println(message);
+                }
             }
         }
     }

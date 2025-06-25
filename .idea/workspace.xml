@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d17e6722-be96-4097-827a-4f2b7c82cc45" name="Changes" comment="" />
+    <list default="true" id="d17e6722-be96-4097-827a-4f2b7c82cc45" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gui/Chat.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/Chat.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gui/ChatClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/ChatClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gui/ChatServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/ChatServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gui/ClientReceiver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/ClientReceiver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gui/LoginWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/gui/LoginWindow.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,6 +24,9 @@
         <option value="Class" />
       </list>
     </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
@@ -33,6 +43,8 @@
     &quot;Application.Main.executor&quot;: &quot;Run&quot;,
     &quot;Application.gui.Chat.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Program Files/JetBrains/openjfx-24.0.1_windows-x64_bin-sdk/javafx-sdk-24.0.1/lib/javafx-swt.jar&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Global Libraries&quot;,
